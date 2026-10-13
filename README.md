@@ -3,7 +3,7 @@
 This repository contains an illustrative example of the second-stage analysis (ENSO regressions of attributable fractions and calculation of attributable numbers) for Brazil only. It is not the full pipeline of the paper.
 
 Data file:
-https://github.com/nataliashartova/ENSO/releases/tag/v1.0-example-data
+https://github.com/nataliashartova/ENSO/releases/tag/v1.1-example-data
 contains prepared Brazil input data: `01_prepared_data_allsex_allage_allcause_iSEN.0_BRA_example.RData` 
 
 The release file  was produced by a data-preparation step that is not included in this repository as restricted mortality data cannot be shared.
