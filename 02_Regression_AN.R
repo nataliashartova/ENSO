@@ -2,7 +2,7 @@
 ## ILLUSTRATIVE EXAMPLE: 
 ##
 ## Input:  01_prepared_data_allsex_allage_allcause_iSEN.0_BRA_example.RData
-##         (from the single-country patch to 01_Prepare_Data.R)
+##         
 ## Output: BRA_example_RegionLevel_AN.csv/.xlsx
 ##         BRA_example_CountryTotal_AN.csv/.xlsx
 ##==============================================================================
@@ -28,9 +28,8 @@ log_msg <- function(...) cat(sprintf("[%s] ", format(Sys.time(), "%H:%M:%S")), p
 # load("01_prepared_data_allsex_allage_allcause_iSEN.0_BRA_example.RData")
 
 KEEP_TYPES <- c("Total Heat", "Total Cold")
-cf_values  <- c(-2.5, 0, 2.5)   # overrides Part 1's 7-value set, for a
-                                  # cleaner illustrative comparison
-cf_labels  <- c("-2.5" = "La Nina (-2.5)", "0" = "Neutral (0)", "2.5" = "El Nino (+2.5)")
+cf_values  <- c(-2.0, 0, 2.5)   
+cf_labels  <- c("-2.0" = "La Nina (-2.0)", "0" = "Neutral (0)", "2.5" = "El Nino (+2.5)")
 
 K_SUBSAMPLE_SIMS <- 50   # simulations to actually refit the spatial
                            # model on (region subsampling is NOT needed
@@ -168,10 +167,9 @@ fit_spatial_once <- function(coef_var_df, coord_df, dmat) {
   if (is.null(fit)) return(NULL)
   
   ## Sanity cap on rho.
-  ## When tau2 is very small, rho becomes poorly identified and REML can
-  ## converge to an absurd, effectively-infinite range. Cap at a large-
-  ## but-physically-plausible multiple of THIS fitting sample's own
-  ## spatial extent, rather than trusting an unbounded estimate.
+  ## When tau2 is very small, rho becomes poorly identified and REML can converge to an absurd, effectively-infinite range. 
+  ## Cap at a large-but-physically-plausible multiple of THIS fitting sample's own spatial extent, rather than trusting an unbounded estimate.
+  
   max_extent <- max(dmat, na.rm = TRUE)
   rho_cap <- 10 * max_extent
   rho_fitted <- fit$rho
@@ -273,11 +271,7 @@ for (ci in seq_len(nrow(combos))) {
 
 log_msg(sprintf("Part A complete: spatial correction available for %d of %d strata.", length(spatial_lookup), nrow(combos)))
 
-# You may see a metafor warning about extreme sampling-variance ratios during Part A. 
-# This reflects heterogeneity in data quality across regions (some Brazilian states have shorter or less variable mortality records than others) 
-# and was directly tested in the full-scale analysis. 
-# Flooring the affected variances did not meaningfully change results, 
-# so this warning can be treated as expected rather than indicating a specific fixable problem.
+#Some regions have near-zero variance in JJA heat-attributable fraction; this can trigger a metafor warning about extreme variance ratios.
 
 brazil_heat_jja <- df_enso2 %>%
   filter(TYPE == "Total Heat", SEASON_REG == "JJA_before_ENSO") %>%
@@ -384,19 +378,32 @@ log_msg(sprintf(
 ##==============================================================================
 
 format_table <- function(key_df, sum_vec, sim_mat, group_vars) {
-  key_df %>%
-    mutate(
-      att_num     = sum_vec / n_years,
-      att_num_low = matrixStats::rowQuantiles(sim_mat, probs = 0.025) / n_years,
-      att_num_upp = matrixStats::rowQuantiles(sim_mat, probs = 0.975) / n_years,
-      ENSO = cf_labels[as.character(cf)]
-    ) %>%
-    group_by(across(all_of(c(group_vars, "TYPE", "ENSO")))) %>%
-    summarise(att_num = sum(att_num), att_num_low = sum(att_num_low), att_num_upp = sum(att_num_upp), .groups = "drop") %>%
-    mutate(AN_formatted = sprintf("%s (%s; %s)",
-                                    format(round(att_num), big.mark = ","),
-                                    format(round(att_num_low), big.mark = ","),
-                                    format(round(att_num_upp), big.mark = ",")))
+
+  key_df$ENSO <- unname(cf_labels[as.character(key_df$cf)])
+  grp_cols <- c(group_vars, "TYPE", "ENSO")
+  g <- do.call(paste, c(unname(as.list(key_df[grp_cols])), sep = "|"))
+
+  ## 1. aggregate point estimates and simulations within each group
+  pt_g  <- rowsum(sum_vec, g)[, 1] / n_years          
+  sim_g <- rowsum(sim_mat, g) / n_years               
+
+  ## 2. quantiles across simulations, on the aggregated values
+  first <- !duplicated(g)
+  gg    <- g[first]
+  out   <- key_df[first, grp_cols, drop = FALSE]
+
+  out$att_num     <- unname(pt_g[gg])
+  out$att_num_low <- matrixStats::rowQuantiles(sim_g[gg, , drop = FALSE], probs = 0.025)
+  out$att_num_upp <- matrixStats::rowQuantiles(sim_g[gg, , drop = FALSE], probs = 0.975)
+
+  out <- out[do.call(order, unname(as.list(out[grp_cols]))), , drop = FALSE]
+  rownames(out) <- NULL
+
+  out$AN_formatted <- sprintf("%s (%s; %s)",
+                              format(round(out$att_num), big.mark = ","),
+                              format(round(out$att_num_low), big.mark = ","),
+                              format(round(out$att_num_upp), big.mark = ","))
+  out
 }
 
 region_table <- format_table(region_key, region_sum, region_sim, "REGION")
