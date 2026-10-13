@@ -3,8 +3,8 @@
 ##
 ## Input:  01_prepared_data_allsex_allage_allcause_iSEN.0_BRA_example.RData
 ##         
-## Output: BRA_example_RegionLevel_AN.csv/.xlsx
-##         BRA_example_CountryTotal_AN.csv/.xlsx
+## Output: BRA_example_RegionLevel_AN.xlsx
+##         BRA_example_CountryTotal_AN.xlsx
 ##==============================================================================
 
 library(dplyr)
