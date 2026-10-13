@@ -1,6 +1,6 @@
 # ENSO and temperature-related mortality: illustrative example (Brazil)
 
-This repository contains an illustrative example of the second-stage analysis (ENSO regressions of attributable fractions, spatial correction and attributable numbers) for Brazil only. It is not the full pipeline of the paper.
+This repository contains an illustrative example of the second-stage analysis (ENSO regressions of attributable fractions and calculation of attributable numbers) for Brazil only. It is not the full pipeline of the paper.
 
 Data file:
 https://github.com/nataliashartova/ENSO/releases/tag/v1.0-example-data
@@ -22,3 +22,5 @@ year, with columns: `REGION`, `TYPE`, `SEASON_REG`, `YEAR`, `att_val`
 (point AF), `sim_1`...`sim_1000` (AF simulations), `temp`, `Nino34_0`,
 `Nino34_prev`, `Nino34_next`, `continent_new`, `HDI_group`,
 `adjusted_factor`.
+
+This example reproduces the second-stage workflow for one country (regressions of AF on the Nino 3.4 index, predicted attributable numbers with confidence intervals for La Nina (-2.0), neutral (0) and El Nino (+2.5)).
