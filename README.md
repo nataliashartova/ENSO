@@ -1,4 +1,8 @@
 # ENSO and temperature-related mortality: illustrative example (Brazil)
+This repository accompanies the following paper:
+
+Shartova, N., Liu, X., Janoš, T. et al. Global temperature-related mortality associated with El-Nino Southern Oscillation. Nat. Med. (2026).
+https://doi.org/10.1038/s41591-026-04793-w
 
 This repository contains an illustrative example of the second-stage analysis (ENSO regressions of attributable fractions and calculation of attributable numbers) for Brazil only. It is not the full pipeline of the paper.
 
